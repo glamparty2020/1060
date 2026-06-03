@@ -1,463 +1,158 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Garbage Collection Duty — June 2026</title>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
-<style>
-  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  <meta charset="UTF-8" />
+  <title>Schedule Board</title>
 
-  :root {
-    --bg: #F7F6F2;
-    --surface: #FFFFFF;
-    --border: rgba(0,0,0,0.1);
-    --border-strong: rgba(0,0,0,0.18);
-    --text: #1A1A18;
-    --text-secondary: #6B6B65;
-    --text-tertiary: #9B9B94;
-    --green-bg: #EAF3DE; --green-text: #27500A;
-    --blue-bg: #E6F1FB; --blue-text: #0C447C;
-    --amber-bg: #FAEEDA; --amber-text: #633806;
-    --amber-border: #EF9F27;
-    --gray-bg: #F1EFE8; --gray-text: #444441;
-    --gray-muted: #B4B2A9;
-    --red-bg: #FCEBEB; --red-text: #791F1F;
-    --av0: #E6F1FB; --av0t: #0C447C;
-    --av1: #EAF3DE; --av1t: #27500A;
-    --av2: #FAEEDA; --av2t: #633806;
-    --av3: #FBEAF0; --av3t: #72243E;
-    --av4: #E1F5EE; --av4t: #085041;
-    --av5: #F1EFE8; --av5t: #444441;
-    --radius: 10px;
-    --radius-sm: 6px;
-    --font: 'DM Sans', sans-serif;
-    --font-mono: 'DM Mono', monospace;
-  }
-
-  body {
-    font-family: var(--font);
-    background: var(--bg);
-    color: var(--text);
-    min-height: 100vh;
-    padding: 40px 16px 80px;
-  }
-
-  .page {
-    max-width: 640px;
-    margin: 0 auto;
-  }
-
-  header {
-    margin-bottom: 32px;
-  }
-
-  .header-top {
-    display: flex;
-    align-items: flex-start;
-    justify-content: space-between;
-    gap: 16px;
-    flex-wrap: wrap;
-    margin-bottom: 8px;
-  }
-
-  h1 {
-    font-size: 26px;
-    font-weight: 500;
-    letter-spacing: -0.5px;
-    line-height: 1.2;
-    color: var(--text);
-  }
-
-  h1 span {
-    color: var(--text-secondary);
-    font-weight: 400;
-  }
-
-  .sub {
-    font-size: 13px;
-    color: var(--text-secondary);
-    line-height: 1.6;
-    margin-top: 4px;
-  }
-
-  .save-btn {
-    font-family: var(--font);
-    font-size: 13px;
-    padding: 7px 16px;
-    border-radius: var(--radius-sm);
-    border: 1px solid var(--border-strong);
-    background: var(--surface);
-    color: var(--text);
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-    gap: 6px;
-    white-space: nowrap;
-    transition: background 0.15s;
-    flex-shrink: 0;
-  }
-  .save-btn:hover { background: var(--gray-bg); }
-  .save-btn svg { width: 14px; height: 14px; }
-
-  .toast {
-    font-size: 12px;
-    color: var(--green-text);
-    margin-top: 5px;
-    text-align: right;
-    min-height: 16px;
-    opacity: 0;
-    transition: opacity 0.2s;
-  }
-  .toast.show { opacity: 1; }
-
-  .legend {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 6px;
-    margin-bottom: 24px;
-  }
-
-  .cards {
-    display: flex;
-    flex-direction: column;
-    gap: 10px;
-  }
-
-  .card {
-    background: var(--surface);
-    border: 1px solid var(--border);
-    border-radius: var(--radius);
-    padding: 18px 20px;
-    transition: border-color 0.2s;
-    animation: fadeIn 0.3s ease both;
-  }
-
-  .card.next {
-    border: 1.5px solid var(--amber-border);
-    background: #FFFCF5;
-  }
-
-  @keyframes fadeIn {
-    from { opacity: 0; transform: translateY(6px); }
-    to   { opacity: 1; transform: translateY(0); }
-  }
-
-  .card:nth-child(1) { animation-delay: 0.05s; }
-  .card:nth-child(2) { animation-delay: 0.1s; }
-  .card:nth-child(3) { animation-delay: 0.15s; }
-  .card:nth-child(4) { animation-delay: 0.2s; }
-
-  .card-top {
-    display: flex;
-    align-items: center;
-    gap: 14px;
-    margin-bottom: 16px;
-  }
-
-  .date-block { min-width: 48px; }
-
-  .date-num {
-    font-size: 32px;
-    font-weight: 500;
-    line-height: 1;
-    letter-spacing: -1px;
-    font-family: var(--font-mono);
-    color: var(--text);
-  }
-
-  .date-sub {
-    font-size: 11px;
-    color: var(--text-tertiary);
-    margin-top: 3px;
-    letter-spacing: 0.04em;
-    text-transform: uppercase;
-  }
-
-  .divider {
-    width: 1px;
-    height: 44px;
-    background: var(--border);
-    flex-shrink: 0;
-  }
-
-  .bins {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 5px;
-    flex: 1;
-  }
-
-  .bin {
-    display: inline-flex;
-    align-items: center;
-    gap: 5px;
-    font-size: 12px;
-    font-weight: 500;
-    padding: 4px 10px;
-    border-radius: var(--radius-sm);
-  }
-
-  .bin-dot {
-    width: 7px;
-    height: 7px;
-    border-radius: 50%;
-    flex-shrink: 0;
-  }
-
-  .bin-gray   { background: var(--gray-bg);  color: var(--gray-text); }
-  .bin-green  { background: var(--green-bg); color: var(--green-text); }
-  .bin-blue   { background: var(--blue-bg);  color: var(--blue-text); }
-  .bin-amber  { background: var(--amber-bg); color: var(--amber-text); }
-  .bin-skip   { background: var(--gray-bg);  color: var(--gray-muted); text-decoration: line-through; }
-
-  .dot-gray   { background: #888780; }
-  .dot-green  { background: #639922; }
-  .dot-blue   { background: #378ADD; }
-  .dot-amber  { background: #BA7517; }
-
-  .next-badge {
-    margin-left: auto;
-    font-size: 11px;
-    font-weight: 500;
-    padding: 3px 10px;
-    border-radius: 20px;
-    background: var(--amber-bg);
-    color: var(--amber-text);
-    white-space: nowrap;
-    flex-shrink: 0;
-    align-self: flex-start;
-  }
-
-  .assign-row {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 10px;
-  }
-
-  @media (max-width: 420px) {
-    .assign-row { grid-template-columns: 1fr; }
-  }
-
-  .assign-label {
-    font-size: 11px;
-    color: var(--text-tertiary);
-    margin-bottom: 6px;
-    display: flex;
-    align-items: center;
-    gap: 4px;
-    letter-spacing: 0.04em;
-    text-transform: uppercase;
-  }
-
-  .assign-label svg { width: 12px; height: 12px; flex-shrink: 0; }
-
-  .assign-inner {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-  }
-
-  .avatar {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    width: 28px;
-    height: 28px;
-    border-radius: 50%;
-    font-size: 10px;
-    font-weight: 500;
-    flex-shrink: 0;
-    font-family: var(--font);
-  }
-
-  select {
-    font-family: var(--font);
-    font-size: 13px;
-    padding: 6px 8px;
-    border-radius: var(--radius-sm);
-    border: 1px solid var(--border-strong);
-    background: var(--surface);
-    color: var(--text);
-    cursor: pointer;
-    flex: 1;
-    min-width: 0;
-    appearance: none;
-    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%239B9B94' stroke-width='2'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E");
-    background-repeat: no-repeat;
-    background-position: right 8px center;
-    padding-right: 28px;
-  }
-  select:focus { outline: none; border-color: var(--amber-border); }
-
-  .leg {
-    display: inline-flex;
-    align-items: center;
-    gap: 5px;
-    font-size: 11px;
-    font-weight: 500;
-    padding: 3px 10px;
-    border-radius: 20px;
-  }
-
-  .footnote {
-    margin-top: 20px;
-    font-size: 12px;
-    color: var(--text-secondary);
-    padding: 10px 14px;
-    background: var(--surface);
-    border-radius: var(--radius-sm);
-    border: 1px solid var(--border);
-    display: flex;
-    gap: 8px;
-    align-items: flex-start;
-    line-height: 1.6;
-  }
-
-  .footnote svg { width: 14px; height: 14px; flex-shrink: 0; margin-top: 1px; color: var(--text-tertiary); }
-</style>
+  <style>
+    /* 기존 스타일 있으면 그대로 두고 여기에 추가 가능 */
+  </style>
 </head>
+
 <body>
-<div class="page">
-  <header>
-    <div class="header-top">
-      <div>
-        <h1>Garbage duty <span>— June 2026</span></h1>
-        <p class="sub">Every Thursday &nbsp;·&nbsp; Put out by 7 am &nbsp;·&nbsp; Bring in by 10 pm</p>
-      </div>
-      <div>
-        <button class="save-btn" onclick="doSave()">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
-          Save assignments
-        </button>
-        <div class="toast" id="toast">Saved ✓</div>
-      </div>
-    </div>
 
-    <div class="legend">
-      <span class="leg bin-gray"><span class="bin-dot dot-gray"></span>Garbage (black lid)</span>
-      <span class="leg bin-green"><span class="bin-dot dot-green"></span>Green bin</span>
-      <span class="leg bin-blue"><span class="bin-dot dot-blue"></span>Recycling + yellow bag</span>
-    </div>
-  </header>
+<div id="cards"></div>
+<div id="toast"></div>
 
-  <div class="cards" id="cards"></div>
+<script type="module">
 
-  <div class="footnote">
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
-    Make sure the garbage bin is not overflowing. Yellow bag (paper recycling) goes out every week with the blue/grey box.
-  </div>
-</div>
+/* =========================
+   1. Firebase import
+========================= */
+import { initializeApp } from "https://www.gstatic.com/firebasejs/12.14.0/firebase-app.js";
+import {
+  getFirestore,
+  doc,
+  getDoc,
+  setDoc
+} from "https://www.gstatic.com/firebasejs/12.14.0/firebase-firestore.js";
 
-<script>
-const tenants = ['Prineet','Saki','Ren','Jeoung Eun','Savannah','Andrew'];
-const pal = [
-  ['#E6F1FB','#0C447C'],
-  ['#EAF3DE','#27500A'],
-  ['#FAEEDA','#633806'],
-  ['#FBEAF0','#72243E'],
-  ['#E1F5EE','#085041'],
-  ['#F1EFE8','#444441'],
-];
+/* =========================
+   2. Firebase config
+========================= */
+const firebaseConfig = {
+  apiKey: "AIzaSyCPlvKL8-4W8a5X7HoIXlTlYcrIiJvGuiY",
+  authDomain: "project-6646559495435789897.firebaseapp.com",
+  projectId: "project-6646559495435789897",
+  storageBucket: "project-6646559495435789897.firebasestorage.app",
+  messagingSenderId: "973490513763",
+  appId: "1:973490513763:web:93fc9b0908df57e72dd556"
+};
 
+/* =========================
+   3. Init Firebase
+========================= */
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
+const ref = doc(db, "board", "assignments");
+
+/* =========================
+   4. DATA (여기 필요하면 수정)
+========================= */
+const tenants = ["Alice", "Bob", "Charlie"];
+
+// 예시 rows (너 기존 것 유지 가능)
 const rows = [
-  { date: 'Jun 4',  dn: 4,  black: false },
-  { date: 'Jun 11', dn: 11, black: true  },
-  { date: 'Jun 18', dn: 18, black: false },
-  { date: 'Jun 25', dn: 25, black: true  },
+  { date: "Jun 01", dn: 1, black: true },
+  { date: "Jun 02", dn: 2, black: false },
+  { date: "Jun 03", dn: 3, black: true }
 ];
 
-function ini(n) { return n.split(' ').map(w => w[0]).join('').slice(0,2).toUpperCase(); }
-
-function av(name) {
-  const i = tenants.indexOf(name);
-  if (i < 0) return '';
-  const [bg, fg] = pal[i];
-  return `<span class="avatar" style="background:${bg};color:${fg}">${ini(name)}</span>`;
+/* =========================
+   5. LOAD / SAVE
+========================= */
+async function loadData() {
+  const snap = await getDoc(ref);
+  if (snap.exists()) return snap.data();
+  return {};
 }
 
-function load() {
-  try { return JSON.parse(localStorage.getItem('gc_jun26_html') || '{}'); } catch(e) { return {}; }
+async function saveData(data) {
+  await setDoc(ref, data);
 }
 
-function doSave() {
-  const d = {};
-  document.querySelectorAll('select[data-k]').forEach(s => d[s.dataset.k] = s.value);
-  try { localStorage.setItem('gc_jun26_html', JSON.stringify(d)); } catch(e) {}
-  const t = document.getElementById('toast');
-  t.classList.add('show');
-  setTimeout(() => t.classList.remove('show'), 2000);
+/* =========================
+   6. UI helpers
+========================= */
+function av(v) {
+  return `<span class="tag">${v}</span>`;
 }
 
 function opts(k, saved) {
   return ['', ...tenants].map(t =>
-    `<option value="${t}"${saved[k] === t ? ' selected' : ''}>${t || '— unassigned —'}</option>`
+    `<option value="${t}" ${saved[k] === t ? 'selected' : ''}>
+      ${t || '— unassigned —'}
+    </option>`
   ).join('');
 }
 
-const upArrow = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="7" y1="17" x2="17" y2="7"/><polyline points="7 7 17 7 17 17"/></svg>`;
-const downArrow = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="17" y1="7" x2="7" y2="17"/><polyline points="17 17 7 17 7 7"/></svg>`;
-
-function render() {
-  const saved = load();
-  const today = new Date();
-  let firstFuture = true;
-  let html = '';
-
-  rows.forEach((r, i) => {
-    const d = new Date('2026 ' + r.date);
-    const isNext = firstFuture && d >= today;
-    if (isNext) firstFuture = false;
-
-    const pk = `put_${i}`, bk = `bring_${i}`;
-    const pv = saved[pk] || '', bv = saved[bk] || '';
-
-    const blackBin = r.black
-      ? `<span class="bin bin-gray"><span class="bin-dot dot-gray"></span>Garbage</span>`
-      : `<span class="bin bin-skip"><span class="bin-dot dot-gray"></span>Garbage</span>`;
-
-    html += `
-    <div class="card${isNext ? ' next' : ''}">
-      <div class="card-top">
-        <div class="date-block">
-          <div class="date-num">${r.dn}</div>
-          <div class="date-sub">Jun · Thu</div>
-        </div>
-        <div class="divider"></div>
-        <div class="bins">
-          ${blackBin}
-          <span class="bin bin-green"><span class="bin-dot dot-green"></span>Green bin</span>
-          <span class="bin bin-blue"><span class="bin-dot dot-blue"></span>Recycling + yellow bag</span>
-        </div>
-        ${isNext ? '<span class="next-badge">Up next</span>' : ''}
-      </div>
-      <div class="assign-row">
-        <div>
-          <div class="assign-label">${upArrow} Put out by 7 am</div>
-          <div class="assign-inner">
-            ${pv ? av(pv) : ''}
-            <select data-k="${pk}" onchange="onChange()">${opts(pk, saved)}</select>
-          </div>
-        </div>
-        <div>
-          <div class="assign-label">${downArrow} Bring in by 10 pm</div>
-          <div class="assign-inner">
-            ${bv ? av(bv) : ''}
-            <select data-k="${bk}" onchange="onChange()">${opts(bk, saved)}</select>
-          </div>
-        </div>
-      </div>
-    </div>`;
-  });
-
-  document.getElementById('cards').innerHTML = html;
+/* =========================
+   7. TOAST
+========================= */
+function toast(msg) {
+  const t = document.getElementById('toast');
+  t.innerText = msg;
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 2000);
 }
 
-function onChange() { doSave(); render(); }
+/* =========================
+   8. RENDER
+========================= */
+async function render() {
+  const saved = await loadData();
 
+  let html = "";
+
+  rows.forEach((r, i) => {
+    const pk = `put_${i}`;
+    const bk = `bring_${i}`;
+
+    html += `
+      <div class="card">
+        <h3>${r.date}</h3>
+
+        <div>
+          Put:
+          <select data-k="${pk}" onchange="window.onChange()">
+            ${opts(pk, saved)}
+          </select>
+        </div>
+
+        <div>
+          Bring:
+          <select data-k="${bk}" onchange="window.onChange()">
+            ${opts(bk, saved)}
+          </select>
+        </div>
+      </div>
+    `;
+  });
+
+  document.getElementById("cards").innerHTML = html;
+}
+
+/* =========================
+   9. CHANGE HANDLER
+========================= */
+window.onChange = async function () {
+  const selects = document.querySelectorAll("select");
+
+  const data = {};
+  selects.forEach(s => {
+    data[s.dataset.k] = s.value;
+  });
+
+  await saveData(data);
+  toast("Saved");
+  render();
+};
+
+/* =========================
+   10. INIT
+========================= */
 render();
+
 </script>
 </body>
 </html>
