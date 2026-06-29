@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Garbage Collection Duty — June 2026</title>
+<title>Garbage Collection Duty — Jul/Aug 2026</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
@@ -90,6 +90,16 @@
     margin-bottom: 24px;
   }
 
+  .month-heading {
+    font-size: 14px;
+    font-weight: 500;
+    color: var(--text-secondary);
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    margin: 28px 0 10px;
+  }
+  .month-heading:first-of-type { margin-top: 0; }
+
   .cards { display: flex; flex-direction: column; gap: 10px; }
 
   .card {
@@ -104,15 +114,14 @@
     border: 1.5px solid var(--amber-border);
     background: #FFFCF5;
   }
+  .card.holiday {
+    opacity: 0.6;
+  }
 
   @keyframes fadeIn {
     from { opacity: 0; transform: translateY(6px); }
     to   { opacity: 1; transform: translateY(0); }
   }
-  .card:nth-child(1) { animation-delay: 0.05s; }
-  .card:nth-child(2) { animation-delay: 0.10s; }
-  .card:nth-child(3) { animation-delay: 0.15s; }
-  .card:nth-child(4) { animation-delay: 0.20s; }
 
   .card-top {
     display: flex;
@@ -120,8 +129,9 @@
     gap: 14px;
     margin-bottom: 16px;
   }
+  .card.holiday .card-top { margin-bottom: 0; }
 
-  .date-block { min-width: 48px; }
+  .date-block { min-width: 56px; }
   .date-num {
     font-size: 32px; font-weight: 500; line-height: 1;
     letter-spacing: -1px; font-family: var(--font-mono); color: var(--text);
@@ -146,10 +156,12 @@
   .bin-green  { background: var(--green-bg); color: var(--green-text); }
   .bin-blue   { background: var(--blue-bg);  color: var(--blue-text); }
   .bin-skip   { background: var(--gray-bg);  color: var(--gray-muted); text-decoration: line-through; }
+  .bin-holiday{ background: var(--gray-bg);  color: var(--text-secondary); }
 
   .dot-gray  { background: #888780; }
   .dot-green { background: #639922; }
   .dot-blue  { background: #378ADD; }
+  .dot-purple{ background: #6B4FA0; }
 
   .next-badge {
     margin-left: auto; font-size: 11px; font-weight: 500;
@@ -229,8 +241,8 @@
   <header>
     <div class="header-top">
       <div>
-        <h1>Garbage duty <span>— June 2026</span></h1>
-        <p class="sub">Every Thursday &nbsp;·&nbsp; Put out by 7 am &nbsp;·&nbsp; Bring in by 10 pm</p>
+        <h1>Garbage duty <span>— Jul/Aug 2026</span></h1>
+        <p class="sub">Put out by 7 am &nbsp;·&nbsp; Bring in by 10 pm &nbsp;·&nbsp; Day of week changes between months — check the date column</p>
         <div class="status-bar">
           <span class="status-dot" id="statusDot"></span>
           <span id="statusText">Connecting…</span>
@@ -242,10 +254,11 @@
       <span class="leg bin-gray"><span class="bin-dot dot-gray"></span>Garbage (black lid)</span>
       <span class="leg bin-green"><span class="bin-dot dot-green"></span>Green bin</span>
       <span class="leg bin-blue"><span class="bin-dot dot-blue"></span>Recycling + yellow bag</span>
+      <span class="leg bin-holiday"><span class="bin-dot dot-purple"></span>Holiday — no duty</span>
     </div>
   </header>
 
-  <div class="cards" id="cards"></div>
+  <div id="cards"></div>
 
   <div class="footnote">
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
@@ -269,10 +282,10 @@ const firebaseConfig = {
 };
 firebase.initializeApp(firebaseConfig);
 const db = firebase.firestore();
-const DOC_REF = db.collection('assignments').doc('jun2026');
+const DOC_REF = db.collection('assignments').doc('julaug2026');
 
 // ── 데이터 ────────────────────────────────────────────────────────
-const tenants = ['Prineet','Saki','Ren','Jeoung Eun','Savannah','Andrew'];
+const tenants = ['Prineet','Saki','Ren','Jeoung Eun','Savannah','Andrew','Sara'];
 const pal = [
   ['#E6F1FB','#0C447C'],
   ['#EAF3DE','#27500A'],
@@ -280,13 +293,24 @@ const pal = [
   ['#FBEAF0','#72243E'],
   ['#E1F5EE','#085041'],
   ['#F1EFE8','#444441'],
+  ['#EEEDFE','#3C3489'],
 ];
 
+// 캘린더 사진 기준: 7월은 금요일, 8월은 월요일에 수거일
+// black: 검은 쓰레기통(격주), holiday: 당번 없음(공휴일)
 const rows = [
-  { date: 'Jun 4',  dn: 4,  black: false },
-  { date: 'Jun 11', dn: 11, black: true  },
-  { date: 'Jun 18', dn: 18, black: false },
-  { date: 'Jun 25', dn: 25, black: true  },
+  // ── July 2026 (Fridays) ──
+  { month: 'July',   date: 'Jul 3',  dn: 3,  dow: 'Fri', black: false, holiday: false },
+  { month: 'July',   date: 'Jul 10', dn: 10, dow: 'Fri', black: true,  holiday: false },
+  { month: 'July',   date: 'Jul 17', dn: 17, dow: 'Fri', black: false, holiday: false },
+  { month: 'July',   date: 'Jul 24', dn: 24, dow: 'Fri', black: true,  holiday: false },
+  { month: 'July',   date: 'Jul 31', dn: 31, dow: 'Fri', black: false, holiday: false },
+  // ── August 2026 (Mondays) ──
+  { month: 'August', date: 'Aug 3',  dn: 3,  dow: 'Mon', black: false, holiday: true  }, // B.C. Day
+  { month: 'August', date: 'Aug 10', dn: 10, dow: 'Mon', black: true,  holiday: false },
+  { month: 'August', date: 'Aug 17', dn: 17, dow: 'Mon', black: false, holiday: false },
+  { month: 'August', date: 'Aug 24', dn: 24, dow: 'Mon', black: true,  holiday: false },
+  { month: 'August', date: 'Aug 31', dn: 31, dow: 'Mon', black: false, holiday: false },
 ];
 
 // 현재 저장된 값 (Firestore에서 받아옴)
@@ -322,56 +346,87 @@ function setStatus(state) {
 const upArrow   = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="7" y1="17" x2="17" y2="7"/><polyline points="7 7 17 7 17 17"/></svg>`;
 const downArrow = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="17" y1="7" x2="7" y2="17"/><polyline points="17 17 7 17 7 7"/></svg>`;
 
-function render() {
-  const today = new Date();
-  let firstFuture = true;
-  let html = '';
-
-  rows.forEach((r, i) => {
-    const d = new Date('2026 ' + r.date);
-    const isNext = firstFuture && d >= today;
-    if (isNext) firstFuture = false;
-
-    const pk = `put_${i}`, bk = `bring_${i}`;
-    const pv = saved[pk] || '', bv = saved[bk] || '';
-
-    const blackBin = r.black
-      ? `<span class="bin bin-gray"><span class="bin-dot dot-gray"></span>Garbage</span>`
-      : `<span class="bin bin-skip"><span class="bin-dot dot-gray"></span>Garbage</span>`;
-
-    html += `
-    <div class="card${isNext ? ' next' : ''}">
+function cardHtml(r, i, isNext) {
+  if (r.holiday) {
+    return `
+    <div class="card holiday">
       <div class="card-top">
         <div class="date-block">
           <div class="date-num">${r.dn}</div>
-          <div class="date-sub">Jun · Thu</div>
+          <div class="date-sub">${r.month.slice(0,3)} · ${r.dow}</div>
         </div>
         <div class="divider"></div>
         <div class="bins">
-          ${blackBin}
-          <span class="bin bin-green"><span class="bin-dot dot-green"></span>Green bin</span>
-          <span class="bin bin-blue"><span class="bin-dot dot-blue"></span>Recycling + yellow bag</span>
-        </div>
-        ${isNext ? '<span class="next-badge">Up next</span>' : ''}
-      </div>
-      <div class="assign-row">
-        <div>
-          <div class="assign-label">${upArrow} Put out by 7 am</div>
-          <div class="assign-inner">
-            ${pv ? av(pv) : ''}
-            <select data-k="${pk}" onchange="onChange(this)">${opts(pk)}</select>
-          </div>
-        </div>
-        <div>
-          <div class="assign-label">${downArrow} Bring in by 10 pm</div>
-          <div class="assign-inner">
-            ${bv ? av(bv) : ''}
-            <select data-k="${bk}" onchange="onChange(this)">${opts(bk)}</select>
-          </div>
+          <span class="bin bin-holiday"><span class="bin-dot dot-purple"></span>Holiday — no duty</span>
         </div>
       </div>
     </div>`;
+  }
+
+  const pk = `put_${i}`, bk = `bring_${i}`;
+  const pv = saved[pk] || '', bv = saved[bk] || '';
+
+  const blackBin = r.black
+    ? `<span class="bin bin-gray"><span class="bin-dot dot-gray"></span>Garbage</span>`
+    : `<span class="bin bin-skip"><span class="bin-dot dot-gray"></span>Garbage</span>`;
+
+  return `
+  <div class="card${isNext ? ' next' : ''}">
+    <div class="card-top">
+      <div class="date-block">
+        <div class="date-num">${r.dn}</div>
+        <div class="date-sub">${r.month.slice(0,3)} · ${r.dow}</div>
+      </div>
+      <div class="divider"></div>
+      <div class="bins">
+        ${blackBin}
+        <span class="bin bin-green"><span class="bin-dot dot-green"></span>Green bin</span>
+        <span class="bin bin-blue"><span class="bin-dot dot-blue"></span>Recycling + yellow bag</span>
+      </div>
+      ${isNext ? '<span class="next-badge">Up next</span>' : ''}
+    </div>
+    <div class="assign-row">
+      <div>
+        <div class="assign-label">${upArrow} Put out by 7 am</div>
+        <div class="assign-inner">
+          ${pv ? av(pv) : ''}
+          <select data-k="${pk}" onchange="onChange(this)">${opts(pk)}</select>
+        </div>
+      </div>
+      <div>
+        <div class="assign-label">${downArrow} Bring in by 10 pm</div>
+        <div class="assign-inner">
+          ${bv ? av(bv) : ''}
+          <select data-k="${bk}" onchange="onChange(this)">${opts(bk)}</select>
+        </div>
+      </div>
+    </div>
+  </div>`;
+}
+
+function render() {
+  const today = new Date();
+  let firstFuture = true;
+  let lastMonth = null;
+  let html = '';
+  let cardsOpen = false;
+
+  rows.forEach((r, i) => {
+    if (r.month !== lastMonth) {
+      if (cardsOpen) html += `</div>`;
+      html += `<div class="month-heading">${r.month} 2026</div><div class="cards">`;
+      cardsOpen = true;
+      lastMonth = r.month;
+    }
+
+    const d = new Date('2026 ' + r.date);
+    const isNext = !r.holiday && firstFuture && d >= today;
+    if (isNext) firstFuture = false;
+
+    html += cardHtml(r, i, isNext);
   });
+
+  if (cardsOpen) html += `</div>`;
 
   document.getElementById('cards').innerHTML = html;
 }
