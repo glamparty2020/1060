@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Garbage Collection Duty — Jul/Aug 2026</title>
+<title>Garbage Collection Duty — Aug/Sep/Oct 2026</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
@@ -241,7 +241,7 @@
   <header>
     <div class="header-top">
       <div>
-        <h1>Garbage duty <span>— Jul/Aug 2026</span></h1>
+        <h1>Garbage duty <span>— Aug/Sep/Oct 2026</span></h1>
         <p class="sub">Put out by 7 am &nbsp;·&nbsp; Bring in by 10 pm &nbsp;·&nbsp; Day of week changes between months — check the date column</p>
         <div class="status-bar">
           <span class="status-dot" id="statusDot"></span>
@@ -282,10 +282,10 @@ const firebaseConfig = {
 };
 firebase.initializeApp(firebaseConfig);
 const db = firebase.firestore();
-const DOC_REF = db.collection('assignments').doc('julaug2026');
+const DOC_REF = db.collection('assignments').doc('augsepoct2026');
 
 // ── 데이터 ────────────────────────────────────────────────────────
-const tenants = ['Prineet','Saki','Ren','Jeoung Eun','Savannah','Andrew','Sara'];
+const tenants = ['Prineet','Saki','Ren','Jeoung Eun','Savannah','Andrew','Kanae'];
 const pal = [
   ['#E6F1FB','#0C447C'],
   ['#EAF3DE','#27500A'],
@@ -296,21 +296,21 @@ const pal = [
   ['#EEEDFE','#3C3489'],
 ];
 
-// 캘린더 사진 기준: 7월은 금요일, 8월은 월요일에 수거일
+// 캘린더 기준: 8월 31일은 월요일(9월 넘어가기 전 마지막 수거일), 9월은 화요일, 10월은 목요일에 수거일
 // black: 검은 쓰레기통(격주), holiday: 당번 없음(공휴일)
 const rows = [
-  // ── July 2026 (Fridays) ──
-  { month: 'July',   date: 'Jul 3',  dn: 3,  dow: 'Fri', black: false, holiday: false },
-  { month: 'July',   date: 'Jul 10', dn: 10, dow: 'Fri', black: true,  holiday: false },
-  { month: 'July',   date: 'Jul 17', dn: 17, dow: 'Fri', black: false, holiday: false },
-  { month: 'July',   date: 'Jul 24', dn: 24, dow: 'Fri', black: true,  holiday: false },
-  { month: 'July',   date: 'Jul 31', dn: 31, dow: 'Fri', black: false, holiday: false },
-  // ── August 2026 (Mondays) ──
-  { month: 'August', date: 'Aug 3',  dn: 3,  dow: 'Mon', black: false, holiday: true  }, // B.C. Day
-  { month: 'August', date: 'Aug 10', dn: 10, dow: 'Mon', black: true,  holiday: false },
-  { month: 'August', date: 'Aug 17', dn: 17, dow: 'Mon', black: false, holiday: false },
-  { month: 'August', date: 'Aug 24', dn: 24, dow: 'Mon', black: true,  holiday: false },
-  { month: 'August', date: 'Aug 31', dn: 31, dow: 'Mon', black: false, holiday: false },
+  // ── August 2026 ──
+  { month: 'August',    date: 'Aug 31', dn: 31, dow: 'Mon', black: false, holiday: false },
+  // ── September 2026 (Tuesdays) ──
+  { month: 'September', date: 'Sep 8',  dn: 8,  dow: 'Tue', black: true,  holiday: false },
+  { month: 'September', date: 'Sep 15', dn: 15, dow: 'Tue', black: false, holiday: false },
+  { month: 'September', date: 'Sep 22', dn: 22, dow: 'Tue', black: true,  holiday: false },
+  { month: 'September', date: 'Sep 29', dn: 29, dow: 'Tue', black: false, holiday: false },
+  // ── October 2026 (Thursdays) ──
+  { month: 'October',   date: 'Oct 7',  dn: 7,  dow: 'Thu', black: true,  holiday: false },
+  { month: 'October',   date: 'Oct 15', dn: 15, dow: 'Thu', black: false, holiday: false },
+  { month: 'October',   date: 'Oct 22', dn: 22, dow: 'Thu', black: true,  holiday: false },
+  { month: 'October',   date: 'Oct 29', dn: 29, dow: 'Thu', black: false, holiday: false },
 ];
 
 // 현재 저장된 값 (Firestore에서 받아옴)
